@@ -5,8 +5,9 @@ from datetime import datetime, timezone
 
 # ── Paths ──────────────────────────────────────────────────────────────
 ROOT_DIR = Path(__file__).resolve().parent.parent
-DAILY_DIR = ROOT_DIR / "daily"
-KNOWLEDGE_DIR = ROOT_DIR / "knowledge"
+VAULT_DIR = Path(r"C:\Users\MICKUR\source\repos\_vaults\.entruencer\03 Claude")
+DAILY_DIR = VAULT_DIR / "Daily"
+KNOWLEDGE_DIR = VAULT_DIR / "Knowledge"
 CONCEPTS_DIR = KNOWLEDGE_DIR / "concepts"
 CONNECTIONS_DIR = KNOWLEDGE_DIR / "connections"
 QA_DIR = KNOWLEDGE_DIR / "qa"
@@ -20,7 +21,7 @@ LOG_FILE = KNOWLEDGE_DIR / "log.md"
 STATE_FILE = SCRIPTS_DIR / "state.json"
 
 # ── Timezone ───────────────────────────────────────────────────────────
-TIMEZONE = "America/Chicago"
+TIMEZONE = "Europe/Berlin"
 
 
 def now_iso() -> str:

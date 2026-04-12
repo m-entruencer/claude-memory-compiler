@@ -23,8 +23,9 @@ from pathlib import Path
 
 # Paths relative to project root
 ROOT = Path(__file__).resolve().parent.parent
-KNOWLEDGE_DIR = ROOT / "knowledge"
-DAILY_DIR = ROOT / "daily"
+VAULT = Path(r"C:\Users\MICKUR\source\repos\_vaults\.entruencer\03 Claude")
+KNOWLEDGE_DIR = VAULT / "Knowledge"
+DAILY_DIR = VAULT / "Daily"
 INDEX_FILE = KNOWLEDGE_DIR / "index.md"
 
 MAX_CONTEXT_CHARS = 20_000

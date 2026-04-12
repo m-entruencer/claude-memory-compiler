@@ -24,7 +24,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DAILY_DIR = ROOT / "daily"
+VAULT = Path(r"C:\Users\MICKUR\source\repos\_vaults\.entruencer\03 Claude")
+DAILY_DIR = VAULT / "Daily"
 SCRIPTS_DIR = ROOT / "scripts"
 STATE_FILE = SCRIPTS_DIR / "last-flush.json"
 LOG_FILE = SCRIPTS_DIR / "flush.log"

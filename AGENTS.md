@@ -78,6 +78,66 @@ The schema that tells the LLM how to compile and maintain the knowledge base. Th
 
 ---
 
+## Manual Engineering Retros
+
+Engineering retros are hand-written reflections on completed technical work (audits, refactors, release post-mortems). They live outside the automatic capture pipeline but must feed back into it, so `compile.py` can derive knowledge articles from them just like from conversation logs.
+
+### File Locations
+
+- **Full retro (standalone document):** `03 Claude/Retros/YYYY-MM-DD <Title>.md`
+- **Daily note (compiler input):** `03 Claude/Daily/YYYY-MM-DD.md`
+
+### Rules
+
+1. Every manual engineering retro exists as its own Markdown file under `03 Claude/Retros/` using the `YYYY-MM-DD <Title>.md` naming pattern.
+2. The full standalone retro must carry consistent YAML frontmatter so fields like project, systems, topics, status, and source daily note can be derived reliably by the compiler and by later queries.
+3. Whenever a new retro is created, the matching daily note for the same date **must** also be maintained.
+4. If the daily note does not yet exist, create it.
+5. Inside the daily note, add a condensed block under a `## Retro-Inputs` section — never paste the full retro. If that section does not yet exist in the daily note, create it and insert the retro block there; do not place the block elsewhere in the note.
+6. The `### Retro-Input – <Title>` heading must use the retro title consistently across the full retro and the daily-note block — ideally the standalone retro filename **without the date prefix** — so duplicate detection and in-place updates remain reliable.
+7. If a retro-input block with an identical title already exists in that daily note, update the existing block in place instead of appending a duplicate.
+8. All cross-references use Obsidian wikilinks in `[[...]]` format.
+9. These daily-note blocks count as compiler-relevant raw material: `compile.py` treats them the same as conversation logs when deriving knowledge articles.
+
+### Retro-Input Block Schema
+
+The block inserted into the daily note must always follow this exact structure:
+
+```markdown
+### Retro-Input – <Title>
+
+Quelle: [[03 Claude/Retros/<retro filename without .md>]]
+
+Projekt: [[...]]
+Systeme: [[...]], [[...]]
+Themen: [[...]], [[...]], [[...]]
+Typ: Engineering Retro
+Status: abgeschlossen
+
+#### Kontext
+Short description.
+
+#### Ergebnis
+Short description.
+
+#### Wichtigste Learnings
+- Point 1
+- Point 2
+- Point 3
+
+#### Änderungen
+- Point 1
+- Point 2
+
+#### Offene Punkte
+- Point 1
+- Point 2
+```
+
+The full retro stays in `03 Claude/Retros/`; the daily note only carries this condensed compiler-facing summary.
+
+---
+
 ## Structural Files
 
 ### `knowledge/index.md` - Master Catalog
