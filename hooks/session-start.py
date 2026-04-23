@@ -17,16 +17,18 @@ Configure in .claude/settings.json:
 """
 
 import json
+import subprocess
 import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 # Paths relative to project root
 ROOT = Path(__file__).resolve().parent.parent
-VAULT = Path(r"C:\Users\MICKUR\source\repos\_vaults\.entruencer\03 Claude")
+VAULT = Path(r"C:\Obsidian\entruencer\03 Claude")
 KNOWLEDGE_DIR = VAULT / "Knowledge"
 DAILY_DIR = VAULT / "Daily"
 INDEX_FILE = KNOWLEDGE_DIR / "index.md"
+INVENTORY_SCRIPT = ROOT / "scripts" / "inventory.py"
 
 MAX_CONTEXT_CHARS = 20_000
 MAX_LOG_LINES = 30
@@ -76,7 +78,30 @@ def build_context() -> str:
     return context
 
 
+def trigger_inventory() -> None:
+    """Fire-and-forget: rebuild INVENTORY.md asynchron, ohne den Hook zu blockieren.
+
+    Output wird komplett verworfen (kein Token-Impact auf die Session).
+    """
+    try:
+        creationflags = 0
+        if sys.platform == "win32":
+            creationflags = subprocess.CREATE_NO_WINDOW | subprocess.DETACHED_PROCESS
+        subprocess.Popen(
+            [sys.executable, str(INVENTORY_SCRIPT)],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            stdin=subprocess.DEVNULL,
+            creationflags=creationflags,
+            close_fds=True,
+        )
+    except Exception:
+        pass  # silent: Inventory-Rebuild darf Session-Start niemals verhindern
+
+
 def main():
+    trigger_inventory()
+
     context = build_context()
 
     output = {
