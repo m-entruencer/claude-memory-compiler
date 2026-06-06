@@ -1,52 +1,129 @@
-# LLM Personal Knowledge Base
+# Claude Memory Compiler
 
-**Your AI conversations compile themselves into a searchable knowledge base.**
+[![Fork](https://img.shields.io/badge/Fork%20von-coleam00%2Fclaude--memory--compiler-181717.svg?logo=github)](https://github.com/coleam00/claude-memory-compiler)
+![Python](https://img.shields.io/badge/Python-3.11%2B-3776ab.svg)
+![Claude Agent SDK](https://img.shields.io/badge/Claude%20Agent%20SDK-aktiv-d97757.svg)
+![uv](https://img.shields.io/badge/uv-managed-de5fe9.svg)
 
-Adapted from [Karpathy's LLM Knowledge Base](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f) architecture, but instead of clipping web articles, the raw data is your own conversations with Claude Code. When a session ends (or auto-compacts mid-session), Claude Code hooks capture the conversation transcript and spawn a background process that uses the [Claude Agent SDK](https://github.com/anthropics/claude-agent-sdk) to extract the important stuff - decisions, lessons learned, patterns, gotchas - and appends it to a daily log. You then compile those daily logs into structured, cross-referenced knowledge articles organized by concept. Retrieval uses a simple index file instead of RAG - no vector database, no embeddings, just markdown.
+> **Fork-Hinweis:** Dies ist ein Fork von
+> **[coleam00/claude-memory-compiler](https://github.com/coleam00/claude-memory-compiler)**.
+> Die Architektur und der Großteil des Codes stammen von Cole Medin (coleam00), inspiriert
+> von [Karpathys LLM-Knowledge-Base](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
+> Dieser Fork ergänzt das Original um ein **Auto-Inventory-Script** und einen
+> **SessionStart-Hook-Trigger** (siehe [Erweiterungen in diesem Fork](#erweiterungen-in-diesem-fork)).
 
-Anthropic has clarified that personal use of the Claude Agent SDK is covered under your existing Claude subscription (Max, Team, or Enterprise) - no separate API credits needed. Unlike OpenClaw, which requires API billing for its memory flush, this runs on your subscription.
+Deine KI-Unterhaltungen kompilieren sich selbst zu einer durchsuchbaren Wissensdatenbank.
+Statt Web-Artikel zu sammeln, sind die Rohdaten deine eigenen Sessions mit Claude Code.
+Wenn eine Session endet (oder mitten drin auto-komprimiert), greifen Claude-Code-Hooks das
+Transkript ab und starten einen Hintergrundprozess. Der nutzt das
+[Claude Agent SDK](https://github.com/anthropics/claude-agent-sdk), um das Wichtige zu
+extrahieren - Entscheidungen, Lessons Learned, Muster, Stolperfallen - und hängt es an ein
+Tageslog an. Aus diesen Tageslogs werden strukturierte, querverlinkte Wissensartikel nach
+Konzept kompiliert. Das Retrieval läuft über eine einfache Index-Datei statt RAG - keine
+Vektordatenbank, keine Embeddings, nur Markdown.
 
-## Quick Start
+Die private Nutzung des Claude Agent SDK ist laut Anthropic über das bestehende
+Claude-Abo (Max, Team oder Enterprise) abgedeckt - keine separaten API-Credits nötig.
 
-Tell your AI coding agent:
+---
 
-> "Clone https://github.com/coleam00/claude-memory-compiler into this project. Set up the Claude Code hooks so my conversations automatically get captured into daily logs, compiled into a knowledge base, and injected back into future sessions. Read the AGENTS.md for the full technical reference on how everything works."
+## Was das System macht
 
-The agent will:
-1. Clone the repo and run `uv sync` to install dependencies
-2. Copy `.claude/settings.json` into your project (or merge the hooks into your existing settings)
-3. The hooks activate automatically next time you open Claude Code
+- **Hooks** greifen Unterhaltungen automatisch ab (Session-Ende plus PreCompact als
+  Sicherheitsnetz).
+- **flush.py** ruft das Claude Agent SDK auf, entscheidet was speicherwürdig ist, und
+  stößt nach 18 Uhr automatisch die Tageskompilierung an.
+- **compile.py** macht aus Tageslogs organisierte Konzept-Artikel mit Querverweisen
+  (automatisch oder manuell ausführbar).
+- **query.py** beantwortet Fragen per index-geführtem Retrieval (kein RAG bei
+  persönlicher Größenordnung nötig).
+- **lint.py** fährt 7 Health-Checks (tote Links, verwaiste Artikel, Widersprüche,
+  Veralterung).
 
-From there, your conversations start accumulating. After 6 PM local time, the next session flush automatically triggers compilation of that day's logs into knowledge articles. You can also run `uv run python scripts/compile.py` manually at any time.
+---
 
-## How It Works
+## So funktioniert es
 
-```
-Conversation -> SessionEnd/PreCompact hooks -> flush.py extracts knowledge
+```text
+Unterhaltung -> SessionEnd/PreCompact-Hooks -> flush.py extrahiert Wissen
     -> daily/YYYY-MM-DD.md -> compile.py -> knowledge/concepts/, connections/, qa/
-        -> SessionStart hook injects index into next session -> cycle repeats
+        -> SessionStart-Hook injiziert Index in die nächste Session -> Kreislauf
 ```
 
-- **Hooks** capture conversations automatically (session end + pre-compaction safety net)
-- **flush.py** calls the Claude Agent SDK to decide what's worth saving, and after 6 PM triggers end-of-day compilation automatically
-- **compile.py** turns daily logs into organized concept articles with cross-references (triggered automatically or run manually)
-- **query.py** answers questions using index-guided retrieval (no RAG needed at personal scale)
-- **lint.py** runs 7 health checks (broken links, orphans, contradictions, staleness)
+---
 
-## Key Commands
+## Schnellstart
+
+Sag deinem KI-Coding-Agenten:
+
+> "Klone https://github.com/m-entruencer/claude-memory-compiler in dieses Projekt. Richte
+> die Claude-Code-Hooks ein, damit meine Unterhaltungen automatisch in Tageslogs erfasst,
+> zu einer Wissensdatenbank kompiliert und in künftige Sessions zurückgespielt werden. Lies
+> die AGENTS.md für die vollständige technische Referenz."
+
+Der Agent wird:
+
+1. Das Repo klonen und `uv sync` für die Abhängigkeiten ausführen
+2. `.claude/settings.json` ins Projekt kopieren (oder die Hooks in deine bestehenden
+   Settings mergen)
+3. Die Hooks aktivieren sich beim nächsten Öffnen von Claude Code automatisch
+
+Ab da sammeln sich deine Unterhaltungen. Nach 18 Uhr Ortszeit stößt der nächste Flush die
+Kompilierung des Tages automatisch an. Manuell jederzeit per
+`uv run python scripts/compile.py`.
+
+---
+
+## Wichtige Befehle
 
 ```bash
-uv run python scripts/compile.py                    # compile new daily logs
-uv run python scripts/query.py "question"            # ask the knowledge base
-uv run python scripts/query.py "question" --file-back # ask + save answer back
-uv run python scripts/lint.py                        # run health checks
-uv run python scripts/lint.py --structural-only      # free structural checks only
+uv run python scripts/compile.py                     # neue Tageslogs kompilieren
+uv run python scripts/query.py "Frage"               # die Wissensdatenbank fragen
+uv run python scripts/query.py "Frage" --file-back   # fragen + Antwort zurückspeichern
+uv run python scripts/lint.py                        # Health-Checks
+uv run python scripts/lint.py --structural-only      # nur kostenlose Struktur-Checks
+uv run python scripts/inventory.py                   # Auto-Inventory schreiben (Fork)
 ```
 
-## Why No RAG?
+---
 
-Karpathy's insight: at personal scale (50-500 articles), the LLM reading a structured `index.md` outperforms vector similarity. The LLM understands what you're really asking; cosine similarity just finds similar words. RAG becomes necessary at ~2,000+ articles when the index exceeds the context window.
+## Erweiterungen in diesem Fork
 
-## Technical Reference
+Gegenüber dem Original von coleam00 ergänzt dieser Fork:
 
-See **[AGENTS.md](AGENTS.md)** for the complete technical reference: article formats, hook architecture, script internals, cross-platform details, costs, and customization options. AGENTS.md is designed to give an AI agent everything it needs to understand, modify, or rebuild the system.
+- **`scripts/inventory.py` (Auto-Inventory)** - scannt Claude-Code-Ressourcen (Skills,
+  Agents, Plugins) plus lokale Projekte und schreibt eine `INVENTORY.md` in den Vault.
+  Standalone, per SessionStart-Hook oder als Scheduled Task aufrufbar.
+- **SessionStart-Hook-Trigger** - bindet den Inventory-Lauf in den Session-Start ein, damit
+  der Überblick aktuell bleibt.
+
+Die Pfade in `inventory.py` (z.B. Projektverzeichnis, Kategorien) sind auf das eigene Setup
+zugeschnitten und vor dem Einsatz anzupassen.
+
+---
+
+## Warum kein RAG?
+
+Karpathys Einsicht: Bei persönlicher Größenordnung (50 bis 500 Artikel) schlägt das LLM,
+das eine strukturierte `index.md` liest, die Vektor-Ähnlichkeit. Das LLM versteht, was du
+wirklich fragst; Cosine-Similarity findet nur ähnliche Wörter. RAG wird erst ab ~2.000
+Artikeln nötig, wenn der Index das Kontextfenster sprengt.
+
+---
+
+## Technische Referenz
+
+Siehe **[AGENTS.md](AGENTS.md)** für die vollständige technische Referenz: Artikel-Formate,
+Hook-Architektur, Script-Interna, Cross-Platform-Details, Kosten und Anpassungsoptionen.
+Die AGENTS.md ist so angelegt, dass ein KI-Agent damit alles hat, um das System zu
+verstehen, zu ändern oder neu zu bauen.
+
+---
+
+## Lizenz & Credits
+
+Architektur und Kern-Code von **[Cole Medin (coleam00)](https://github.com/coleam00/claude-memory-compiler)**,
+inspiriert von Andrej Karpathy. Die Fork-Erweiterungen stammen von der
+**[Entruencer UG (haftungsbeschränkt)](https://entruencer.de/)**.
+
+Für die Lizenzbedingungen gilt das [Upstream-Repository](https://github.com/coleam00/claude-memory-compiler).
