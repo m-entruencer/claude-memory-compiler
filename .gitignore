@@ -29,3 +29,6 @@ scripts/uv.lock
 Thumbs.db
 
 .obsidian/
+
+# Ablage fuer Screenshots/Dokumente an Claude, nie versionieren
+/uploads/
